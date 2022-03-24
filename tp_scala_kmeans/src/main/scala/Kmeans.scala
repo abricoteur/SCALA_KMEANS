@@ -1,55 +1,87 @@
+import java.io.{File, PrintWriter}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-class Kmeans() :
+class Kmeans(data : Data, choix : Int, k : Int) :
 
-  def init(data : Data, k : Int, choix : Int) : Unit =
-    //-> choisir k points aléatoires (centroid)
-    var centroids = new Array[Double](k)
+  var choix2 : Int = choix
+
+  def init() : Unit =
+
+    if(choix==2){choix2 += 1}else{choix2 -= 1}
+
+    var centroids = new Array[Array[Double]](k)
     for i <-0 until k do
-      centroids(i) = Random.between(data.findMin(choix),data.findMax(choix))
+      centroids(i) = new Array[Double](2)
+      centroids(i)(0) = Random.between(data.findMin(choix),data.findMax(choix))
+      centroids(i)(1) = Random.between(data.findMin(choix2),data.findMax(choix2))
+    var clusters = affectation(centroids)
 
-    var clusters = affectation(data, centroids, choix)
-    for etape <- 0 until k do
+    var copie = new Array[Array[Double]](k)
+    copie = centroids.map(_.map(identity))
+
+    val pw = new PrintWriter(new File("point.txt"))
+
+    var etape = 0
+    while testOk(copie, centroids) || etape < 1 & etape < 50 do
       println(etape)
-      println(centroids.mkString("Array(", ", ", ")"))
-      for e <- clusters do
-        println(e.mkString("Array(", ", ", ")"))
+      copie = centroids.map(_.map(identity))
+      for e <- copie do
+        println("A : " + e(0) + " " + e(1) + ", ")
+      for e <- centroids do
+        println("B : " + e(0) + " " + e(1) + ", ")
       centroids = calcCentroids(clusters, centroids)
-      clusters = affectation(data, centroids, choix)
+      for e <- centroids do
+        println("C : " + e(0) + " " + e(1) + ", ")
+      clusters = affectation(centroids)
 
-  def calcCentroids(clusters : ArrayBuffer[ArrayBuffer[Double]], centroids : Array[Double]) : Array[Double] =
+      var s = ""
+      for e <- clusters do
+        for point <- e do
+          s += point(0) + "," + point(1) + "," + clusters.indexOf(e) + ",\n"
+      for e <- centroids do
+        s += e(0) + "," + e(1) + ",\n"
+      pw.write(s)
+      pw.write("<-------->\n")
+
+      etape+=1
+
+    pw.close()
+
+  def testOk(cp : Array[Array[Double]], centroids : Array[Array[Double]]) : Boolean =
+
+    var test : Boolean = false
+    for i <- centroids.indices do
+      if cp(i)(0) != centroids(i)(0) || cp(i)(1) != centroids(i)(1) then
+        test = true
+    test
+
+  def calcCentroids(clusters : ArrayBuffer[ArrayBuffer[Array[Double]]], centroids : Array[Array[Double]]) : Array[Array[Double]] =
 
     for i <- centroids.indices do
-      var moyenne : Double = 0.0
-      for e <- clusters(i) do
-        moyenne += e
-      moyenne /= clusters(i).length
-      centroids(i) = moyenne //moyenne des valeurs de clusters(i)
+      centroids(i)(0) = data.moyenne(clusters(i))(0)
+      centroids(i)(1) = data.moyenne(clusters(i))(1)
 
     centroids
 
 
-  def affectation(data : Data, centroids : Array[Double], choix : Int) : ArrayBuffer[ArrayBuffer[Double]] =
-    //Affecter chaque point (élément de la matrice de donnée) au groupe dont il est le plus proche au son centre
-    //Recalculer le centre de chaque cluster  et modifier le centroid
-    //jusque convergence
+  def affectation(centroids : Array[Array[Double]]) : ArrayBuffer[ArrayBuffer[Array[Double]]] =
 
-    val clusters : ArrayBuffer[ArrayBuffer[Double]] = ArrayBuffer[ArrayBuffer[Double]]()
+    val clusters : ArrayBuffer[ArrayBuffer[Array[Double]]] = ArrayBuffer[ArrayBuffer[Array[Double]]]()
     for i <- centroids.indices do
-      clusters += ArrayBuffer[Double]()
+      clusters += ArrayBuffer[Array[Double]]()
 
     for e <- data.data do
-      clusters(cenMin(e(choix).toDouble, centroids)) += e(choix).toDouble
+      clusters(cenMin(e(choix).toDouble, e(choix2).toDouble, centroids)) += Array(e(choix).toDouble, e(choix2).toDouble)
 
     clusters
 
   //return nearest centroid index
-  def cenMin(d: Double, centroids : Array[Double]) : Int =
-    var min = scala.math.pow(d - centroids(0), 2)
+  def cenMin(a: Double, o : Double, centroids : Array[Array[Double]]) : Int =
+    var min = scala.math.sqrt(scala.math.pow(a-centroids(0)(0), 2) + scala.math.pow(o-centroids(0)(1),2))
     var cen = centroids(0)
     for e <- centroids do
-      if scala.math.pow(d - e, 2) < min then
-        min = scala.math.pow(d - e, 2)
+      if scala.math.sqrt(scala.math.pow(a-e(0), 2) + scala.math.pow(o-e(1),2)) < min then
+        min = scala.math.sqrt(scala.math.pow(a-e(0), 2) + scala.math.pow(o-e(1),2))
         cen = e
     centroids.indexOf(cen)
