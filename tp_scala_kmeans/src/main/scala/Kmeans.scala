@@ -20,19 +20,17 @@ class Kmeans(data : Data, choix : Int, k : Int) :
     var copie = new Array[Array[Double]](k)
     copie = centroids.map(_.map(identity))
 
-    val pw = new PrintWriter(new File("point.txt"))
+    val pw = new PrintWriter(new File("points.txt"))
 
     var etape = 0
-    while testOk(copie, centroids) || etape < 1 & etape < 50 do
+    while (different(copie, centroids) || etape < 1) && etape < 20 do
       println(etape)
       copie = centroids.map(_.map(identity))
-      for e <- copie do
-        println("A : " + e(0) + " " + e(1) + ", ")
       for e <- centroids do
-        println("B : " + e(0) + " " + e(1) + ", ")
+        println("Avant : " + e(0) + " " + e(1) + ", ")
       centroids = calcCentroids(clusters, centroids)
       for e <- centroids do
-        println("C : " + e(0) + " " + e(1) + ", ")
+        println("Apres : " + e(0) + " " + e(1) + ", ")
       clusters = affectation(centroids)
 
       var s = ""
@@ -48,7 +46,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
 
     pw.close()
 
-  def testOk(cp : Array[Array[Double]], centroids : Array[Array[Double]]) : Boolean =
+  def different(cp : Array[Array[Double]], centroids : Array[Array[Double]]) : Boolean =
 
     var test : Boolean = false
     for i <- centroids.indices do
@@ -59,8 +57,9 @@ class Kmeans(data : Data, choix : Int, k : Int) :
   def calcCentroids(clusters : ArrayBuffer[ArrayBuffer[Array[Double]]], centroids : Array[Array[Double]]) : Array[Array[Double]] =
 
     for i <- centroids.indices do
-      centroids(i)(0) = data.moyenne(clusters(i))(0)
-      centroids(i)(1) = data.moyenne(clusters(i))(1)
+      val moyenne = data.moyenne(clusters(i))
+      centroids(i)(0) = moyenne(0)
+      centroids(i)(1) = moyenne(1)
 
     centroids
 

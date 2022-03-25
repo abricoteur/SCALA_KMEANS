@@ -43,7 +43,9 @@ class Data(file : String, separator : String) :
 		for point <- points do
 			moyenneAbs += point(0)
 			moyenneOrd += point(1)
-		moyenneAbs /= points.length
-		moyenneOrd /= points.length
+		if moyenneAbs != 0.0 then
+			moyenneAbs /= points.length
+		if moyenneOrd != 0.0 then
+			moyenneOrd /= points.length
 		Array(moyenneAbs, moyenneOrd)
 
