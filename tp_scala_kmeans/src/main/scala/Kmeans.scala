@@ -10,6 +10,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
 
     if(choix==2){choix2 += 1}else{choix2 -= 1}
 
+    //initialisation aléatoire des centroids
     var centroids = new Array[Array[Double]](k)
     for i <-0 until k do
       centroids(i) = new Array[Double](2)
@@ -17,22 +18,24 @@ class Kmeans(data : Data, choix : Int, k : Int) :
       centroids(i)(1) = Random.between(data.findMin(choix2),data.findMax(choix2))
     var clusters = affectation(centroids)
 
+    //création d'une copie des centroids
     var copie = new Array[Array[Double]](k)
     copie = centroids.map(_.map(identity))
 
     val pw = new PrintWriter(new File("points.txt"))
 
+    //boucle d'actualisation des centroids
+    //on test si les centroids changent entre l'étape n et n+1
     var etape = 0
     while (different(copie, centroids) || etape < 1) && etape < 20 do
-      println(etape)
+      println("Cycle " + etape + " :")
       copie = centroids.map(_.map(identity))
-      for e <- centroids do
-        println("Avant : " + e(0) + " " + e(1) + ", ")
       centroids = calcCentroids(clusters, centroids)
       for e <- centroids do
-        println("Apres : " + e(0) + " " + e(1) + ", ")
+        println("Centroids " + centroids.indexOf(e) + " : x = " + e(0) + ", y = " + e(1))
       clusters = affectation(centroids)
 
+      //On écrit les coordonnées des centroids et des points dans un fichier texte
       var s = ""
       for e <- clusters do
         for point <- e do
@@ -46,6 +49,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
 
     pw.close()
 
+  //test si les deux tableaux en paramètre son différents
   def different(cp : Array[Array[Double]], centroids : Array[Array[Double]]) : Boolean =
 
     var test : Boolean = false
@@ -54,6 +58,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
         test = true
     test
 
+  //actualise les coordonnées des centroids
   def calcCentroids(clusters : ArrayBuffer[ArrayBuffer[Array[Double]]], centroids : Array[Array[Double]]) : Array[Array[Double]] =
 
     for i <- centroids.indices do
@@ -63,7 +68,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
 
     centroids
 
-
+  //affecte les points aux clusters selon la distance aux centroids
   def affectation(centroids : Array[Array[Double]]) : ArrayBuffer[ArrayBuffer[Array[Double]]] =
 
     val clusters : ArrayBuffer[ArrayBuffer[Array[Double]]] = ArrayBuffer[ArrayBuffer[Array[Double]]]()
@@ -75,7 +80,7 @@ class Kmeans(data : Data, choix : Int, k : Int) :
 
     clusters
 
-  //return nearest centroid index
+  //retourne l'index du centroid le plus proche des coordonnées en paramètres
   def cenMin(a: Double, o : Double, centroids : Array[Array[Double]]) : Int =
     var min = scala.math.sqrt(scala.math.pow(a-centroids(0)(0), 2) + scala.math.pow(o-centroids(0)(1),2))
     var cen = centroids(0)

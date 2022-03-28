@@ -5,12 +5,10 @@ import scala.math.sqrt
 class Data(file : String, separator : String) :
 
 	val source: BufferedSource = Source.fromFile(file)
-	//var a = source.getLines.length
 	var data : Array[Array[String]] = Array.ofDim[String](150, 5)
 
-	//extract data from file into multi dim array
+	//extrait les données du fichier et les range dans un tableau
 	def init() : Unit =
-		//val cols = source.getLines().take(1).split(this.separator).length
 		var i = 0
 		for (line <- source.getLines()) do
 			var j = 0
@@ -20,7 +18,7 @@ class Data(file : String, separator : String) :
 			i+=1
 		source.close()
 
-	//return max value of choix in data
+	//retourne la valeur maximale de la colonne en paramètre
 	def findMax(choix : Int) : Double =
 		var max = data(0)(choix).toDouble
 		for e <- data do
@@ -28,7 +26,7 @@ class Data(file : String, separator : String) :
 				max = e(choix).toDouble
 		max
 
-	//return min value of choix in data
+	//retourne la valeur minimale de la colonne en paramètre
 	def findMin(choix : Int) : Double =
 		var min = data(0)(choix).toDouble
 		for e <- data do
@@ -36,6 +34,7 @@ class Data(file : String, separator : String) :
 				min = e(choix).toDouble
 		min
 
+	//retourne les moyennes des abscisses et des ordonnées du tableau de points en paramètre
 	def moyenne(points : ArrayBuffer[Array[Double]]) : Array[Double] =
 
 		var moyenneAbs = 0.0
